@@ -7,7 +7,9 @@
     <section class="space-y-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <p class="text-sm text-white/90">Kelola jadwal dan status penerbangan.</p>
-            <a href="{{ route('admin.flights.create') }}" class="admin-btn-primary">Tambah Flight</a>
+            @if (auth()->user()->isAdmin())
+                <a href="{{ route('admin.flights.create') }}" class="admin-btn-primary">Tambah Flight</a>
+            @endif
         </div>
 
         <form method="GET" class="admin-card grid gap-3 xl:grid-cols-6">
@@ -77,12 +79,14 @@
                                 <td>{{ $flight->booked_seats }} / {{ $flight->airplane?->capacity }}</td>
                                 <td class="space-x-1">
                                     <a href="{{ route('admin.flights.show', $flight) }}" class="admin-btn-secondary">Detail</a>
-                                    <a href="{{ route('admin.flights.edit', $flight) }}" class="admin-btn-secondary">Edit</a>
-                                    <form action="{{ route('admin.flights.destroy', $flight) }}" method="POST" class="inline" onsubmit="return confirm('Hapus flight ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="admin-btn-secondary" type="submit">Delete</button>
-                                    </form>
+                                    @if (auth()->user()->isAdmin())
+                                        <a href="{{ route('admin.flights.edit', $flight) }}" class="admin-btn-secondary">Edit</a>
+                                        <form action="{{ route('admin.flights.destroy', $flight) }}" method="POST" class="inline" onsubmit="return confirm('Hapus flight ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="admin-btn-secondary" type="submit">Delete</button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

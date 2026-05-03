@@ -12,6 +12,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        @stack('styles')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="portal-shell font-sans antialiased text-slate-700">
@@ -34,7 +35,7 @@
                     <a href="{{ route('home') }}" @class(['portal-nav-link', 'portal-nav-link-active' => $active === 'home'])>Home</a>
                     <a href="{{ route('flights.index') }}" @class(['portal-nav-link', 'portal-nav-link-active' => $active === 'flights'])>Flights</a>
                     @auth
-                        @if (auth()->user()->role === 'user')
+                        @if (auth()->user()->isCustomer())
                             <a href="{{ route('my-bookings.index') }}" @class(['portal-nav-link', 'portal-nav-link-active' => $active === 'bookings'])>My Bookings</a>
                             <a href="{{ route('passengers.index') }}" @class(['portal-nav-link', 'portal-nav-link-active' => $active === 'passengers'])>Passengers</a>
                             <a href="{{ route('profile.edit') }}" @class(['portal-nav-link', 'portal-nav-link-active' => $active === 'profile'])>Profile</a>
@@ -51,7 +52,7 @@
                         <a href="{{ route('login') }}" class="landing-nav-outline">Login</a>
                         <a href="{{ route('register') }}" class="landing-nav-solid">Register</a>
                     @else
-                        @if (auth()->user()->role === 'user')
+                        @if (auth()->user()->isCustomer())
                             <a href="{{ route('notifications.index') }}" class="portal-action-btn">
                                 <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V10a6 6 0 1 0-12 0v4.2a2 2 0 0 1-.6 1.4L4 17h5" />
@@ -95,7 +96,7 @@
                     <a href="{{ route('home') }}" @class(['portal-mobile-link', 'portal-mobile-link-active' => $active === 'home'])>Home</a>
                     <a href="{{ route('flights.index') }}" @class(['portal-mobile-link', 'portal-mobile-link-active' => $active === 'flights'])>Flights</a>
                     @auth
-                        @if (auth()->user()->role === 'user')
+                        @if (auth()->user()->isCustomer())
                             <a href="{{ route('my-bookings.index') }}" @class(['portal-mobile-link', 'portal-mobile-link-active' => $active === 'bookings'])>My Bookings</a>
                             <a href="{{ route('passengers.index') }}" @class(['portal-mobile-link', 'portal-mobile-link-active' => $active === 'passengers'])>Passengers</a>
                             <a href="{{ route('profile.edit') }}" @class(['portal-mobile-link', 'portal-mobile-link-active' => $active === 'profile'])>Profile</a>
@@ -172,7 +173,7 @@
 
         <footer id="contact" class="relative z-10 mt-10 border-t border-white/25 bg-black/15 backdrop-blur-sm">
             <div class="portal-container flex flex-col gap-3 py-6 text-sm text-white/90 md:flex-row md:items-center md:justify-between">
-                <p>© {{ now()->year }} Zannora Airline. All rights reserved.</p>
+                <p>&copy; {{ now()->year }} Zannora Airline. All rights reserved.</p>
                 <div class="flex items-center gap-4">
                     <a href="#" class="auth-link-light">About</a>
                     <a href="#" class="auth-link-light">Contact</a>
@@ -184,3 +185,4 @@
 
     </body>
 </html>
+

@@ -79,7 +79,7 @@ class AdminFlightController extends Controller
         ]);
 
         $bookedSeatIds = $flight->bookings
-            ->whereIn('status', ['pending', 'confirmed', 'completed'])
+            ->filter(fn ($booking) => $booking->locksSeat())
             ->flatMap->details
             ->pluck('seat_id')
             ->filter()

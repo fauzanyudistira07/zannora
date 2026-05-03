@@ -85,12 +85,9 @@
         <div>
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 class="font-heading text-4xl font-bold text-white">Available Flights</h2>
-                <div class="flex items-center gap-2">
-                    <span class="rounded-full bg-white/15 px-4 py-2 text-sm font-medium text-white/95">
-                        {{ $flights->total() }} results
-                    </span>
-                    <span id="api-status" class="rounded-full bg-white/15 px-4 py-2 text-sm text-white/90">API: checking...</span>
-                </div>
+                <span class="rounded-full bg-white/15 px-4 py-2 text-sm font-medium text-white/95">
+                    {{ $flights->total() }} results
+                </span>
             </div>
 
             <div class="space-y-4">
@@ -135,22 +132,4 @@
         </div>
     </section>
 
-    <script>
-        (async () => {
-            const statusEl = document.getElementById('api-status');
-            if (!statusEl) return;
-
-            try {
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('from')) params.set('departure_airport_id', params.get('from'));
-                if (params.get('to')) params.set('arrival_airport_id', params.get('to'));
-                if (params.get('date')) params.set('date', params.get('date'));
-                const response = await zannoraApiFetch(`/api/v1/flights?${params.toString()}`);
-                statusEl.textContent = `API: connected (${response?.data?.length ?? 0} loaded)`;
-            } catch (error) {
-                statusEl.textContent = 'API: unavailable';
-            }
-        })();
-    </script>
 @endsection
-

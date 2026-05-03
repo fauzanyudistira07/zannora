@@ -12,30 +12,41 @@
     </head>
     <body class="portal-shell font-sans antialiased text-slate-700">
         @php
+            $user = auth()->user();
             $menuGroups = [
                 'Monitoring' => [
                     ['label' => 'Dashboard', 'route' => 'admin.dashboard'],
-                    ['label' => 'Reports', 'route' => 'admin.reports.index'],
-                ],
-                'Master Data' => [
-                    ['label' => 'Airports', 'route' => 'admin.airports.index'],
-                    ['label' => 'Airlines', 'route' => 'admin.airlines.index'],
-                    ['label' => 'Airplanes', 'route' => 'admin.airplanes.index'],
-                    ['label' => 'Seats', 'route' => 'admin.seats.index'],
-                    ['label' => 'Flights', 'route' => 'admin.flights.index'],
                 ],
                 'Operational' => [
-                    ['label' => 'Users', 'route' => 'admin.users.index'],
                     ['label' => 'Passengers', 'route' => 'admin.passengers.index'],
+                    ['label' => 'Flights', 'route' => 'admin.flights.index'],
                     ['label' => 'Bookings', 'route' => 'admin.bookings.index'],
                     ['label' => 'Payments', 'route' => 'admin.payments.index'],
                     ['label' => 'Tickets', 'route' => 'admin.tickets.index'],
                 ],
             ];
+
+            if ($user?->canViewReports()) {
+                $menuGroups['Monitoring'][] = ['label' => 'Reports', 'route' => 'admin.reports.index'];
+            }
+
+            if ($user?->canViewUsers()) {
+                array_unshift($menuGroups['Operational'], ['label' => 'Users', 'route' => 'admin.users.index']);
+            }
+
+            if ($user?->canManageMasterData()) {
+                $menuGroups['Master Data'] = [
+                    ['label' => 'Airports', 'route' => 'admin.airports.index'],
+                    ['label' => 'Airlines', 'route' => 'admin.airlines.index'],
+                    ['label' => 'Airplanes', 'route' => 'admin.airplanes.index'],
+                    ['label' => 'Seats', 'route' => 'admin.seats.index'],
+                ];
+            }
+
             $currentRoute = optional(request()->route())->getName();
         @endphp
 
-        <div class="portal-container relative z-10 overflow-x-clip py-6 lg:py-8" x-data="{ sidebarOpen: false }">
+        <div class="relative z-10 mx-auto w-full max-w-[1500px] px-6 lg:px-12 2xl:px-16 overflow-x-clip py-6 lg:py-8" x-data="{ sidebarOpen: false }">
             <div
                 class="fixed inset-0 z-40 bg-slate-900/45 lg:hidden"
                 x-show="sidebarOpen"
@@ -58,6 +69,7 @@
 
                     <nav class="mt-6 space-y-5">
                         @foreach ($menuGroups as $group => $menus)
+                            @continue(empty($menus))
                             <div>
                                 <p class="admin-sidebar-group">{{ $group }}</p>
                                 <div class="mt-2 grid gap-1">

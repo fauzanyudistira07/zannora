@@ -74,7 +74,6 @@
             <p class="text-sm uppercase tracking-[0.25em] text-[#315b8c]">{{ $flight->airline->name }}</p>
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <h1 class="mt-1 font-heading text-4xl font-bold text-slate-800">Booking {{ $flight->flight_number }}</h1>
-                <span id="booking-api-status" class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">API: checking...</span>
             </div>
             <p class="mt-2 text-slate-600">
                 {{ $flight->departureAirport->city }} ({{ $flight->departureAirport->code }})
@@ -268,18 +267,6 @@
     </section>
 
     <script>
-        (async () => {
-            const statusEl = document.getElementById('booking-api-status');
-            if (!statusEl) return;
-
-            try {
-                await zannoraApiFetch('/api/v1/flights/{{ $flight->id }}/available-seats');
-                statusEl.textContent = 'API: connected';
-            } catch (error) {
-                statusEl.textContent = 'API: unavailable';
-            }
-        })();
-
         function bookingWizard(passengers, seats, availableSeatIds, flightPrice) {
             return {
                 step: 1,

@@ -31,7 +31,7 @@ class PaymentController extends Controller
     {
         $booking = Booking::query()->with('payments')->findOrFail($request->integer('booking_id'));
 
-        if ($booking->user_id !== $request->user()->id && $request->user()->role !== 'admin') {
+        if ($booking->user_id !== $request->user()->id && ! $request->user()->isBackoffice()) {
             throw new AuthorizationException('Unauthorized');
         }
 
@@ -51,7 +51,7 @@ class PaymentController extends Controller
     {
         $payment->load('booking');
 
-        if ($payment->booking->user_id !== $request->user()->id && $request->user()->role !== 'admin') {
+        if ($payment->booking->user_id !== $request->user()->id && ! $request->user()->isBackoffice()) {
             throw new AuthorizationException('Unauthorized');
         }
 

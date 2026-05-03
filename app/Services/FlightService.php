@@ -37,7 +37,7 @@ class FlightService
         $bookedSeatIds = BookingDetail::query()
             ->whereHas('booking', function (Builder $query) use ($flight) {
                 $query->where('flight_id', $flight->id)
-                    ->whereIn('status', ['pending', 'confirmed', 'completed']);
+                    ->seatLocking();
             })
             ->pluck('seat_id');
 

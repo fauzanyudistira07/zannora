@@ -103,7 +103,7 @@
             </div>
 
             @auth
-                @if (auth()->user()->role === 'user')
+                @if (auth()->user()->isCustomer())
                     <a href="{{ route('booking.create', ['flight' => $flight->id]) }}" class="portal-btn-gold mt-6 w-full">
                         Book Now
                     </a>
@@ -116,4 +116,3 @@
         </aside>
     </section>
 @endsection
-

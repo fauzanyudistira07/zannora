@@ -66,7 +66,7 @@ class BookingController extends Controller
     )]
     public function show(Request $request, Booking $booking)
     {
-        if ($booking->user_id !== $request->user()->id && $request->user()->role !== 'admin') {
+        if ($booking->user_id !== $request->user()->id && ! $request->user()->isBackoffice()) {
             throw new AuthorizationException('Unauthorized');
         }
 

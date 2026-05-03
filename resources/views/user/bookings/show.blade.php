@@ -30,7 +30,6 @@
                         <span class="portal-status-default">{{ ucfirst($booking->status) }}</span>
                     @endif
                 </div>
-                <span id="booking-detail-api-status" class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">API: checking...</span>
             </div>
         </article>
 
@@ -78,7 +77,11 @@
         <article class="portal-card">
             <div class="flex flex-wrap items-center gap-3">
                 @if ($booking->status === 'pending')
-                    <a href="{{ route('payments.create', ['booking' => $booking->id]) }}" class="portal-btn-gold">Pay Now</a>
+                    @if ($latestPayment && $latestPayment->payment_status === 'pending' && filled($latestPayment->midtrans_redirect_url))
+                        <a href="{{ route('payments.show', $latestPayment) }}" class="portal-btn-gold">Lanjut Bayar</a>
+                    @elseif (! $latestPayment || in_array($latestPayment->payment_status, ['failed', 'refunded'], true))
+                        <a href="{{ route('payments.create', ['booking' => $booking->id]) }}" class="portal-btn-gold">Pay Now</a>
+                    @endif
                     <form method="POST" action="{{ route('my-bookings.cancel', $booking) }}">
                         @csrf
                         <button type="submit" class="portal-btn-blue">Cancel Booking</button>
@@ -92,17 +95,4 @@
         </article>
     </section>
 
-    <script>
-        (async () => {
-            const statusEl = document.getElementById('booking-detail-api-status');
-            if (!statusEl) return;
-
-            try {
-                await zannoraApiFetch('/api/v1/bookings/{{ $booking->id }}');
-                statusEl.textContent = 'API: connected';
-            } catch (error) {
-                statusEl.textContent = 'API: unavailable';
-            }
-        })();
-    </script>
 @endsection

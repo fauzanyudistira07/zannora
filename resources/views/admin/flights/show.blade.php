@@ -18,17 +18,19 @@
                     <div><p class="text-sm text-slate-500">Available Seats</p><p class="font-semibold text-slate-800">{{ $availableSeats }}</p></div>
                 </div>
 
-                <form method="POST" action="{{ route('admin.flights.status', $flight) }}" class="flex items-center gap-2">
-                    @csrf
-                    @method('PATCH')
-                    <select name="status" class="admin-field" required>
-                        <option value="scheduled" @selected($flight->status === 'scheduled')>Scheduled</option>
-                        <option value="delayed" @selected($flight->status === 'delayed')>Delayed</option>
-                        <option value="cancelled" @selected($flight->status === 'cancelled')>Cancelled</option>
-                        <option value="completed" @selected($flight->status === 'completed')>Completed</option>
-                    </select>
-                    <button class="admin-btn-primary" type="submit">Update Status</button>
-                </form>
+                @if (auth()->user()->isAdmin() || auth()->user()->isStaff())
+                    <form method="POST" action="{{ route('admin.flights.status', $flight) }}" class="flex items-center gap-2">
+                        @csrf
+                        @method('PATCH')
+                        <select name="status" class="admin-field" required>
+                            <option value="scheduled" @selected($flight->status === 'scheduled')>Scheduled</option>
+                            <option value="delayed" @selected($flight->status === 'delayed')>Delayed</option>
+                            <option value="cancelled" @selected($flight->status === 'cancelled')>Cancelled</option>
+                            <option value="completed" @selected($flight->status === 'completed')>Completed</option>
+                        </select>
+                        <button class="admin-btn-primary" type="submit">Update Status</button>
+                    </form>
+                @endif
             </div>
         </article>
 

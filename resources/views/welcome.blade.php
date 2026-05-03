@@ -182,7 +182,7 @@
     </section>
 
     @auth
-        @if (auth()->user()->role === 'user')
+        @if (auth()->user()->isCustomer())
             <section class="mt-14 grid gap-6 lg:grid-cols-2">
                 <div class="portal-card">
                     <h2 class="font-heading text-3xl font-bold text-[#0f3f78]">Recent Booking</h2>
@@ -236,5 +236,4 @@
         @endif
     @endauth
 @endsection
-
 

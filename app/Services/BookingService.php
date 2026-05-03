@@ -62,7 +62,7 @@ class BookingService
                 ->whereIn('seat_id', $seatIds)
                 ->whereHas('booking', function (Builder $query) use ($flight) {
                     $query->where('flight_id', $flight->id)
-                        ->whereIn('status', ['pending', 'confirmed', 'completed']);
+                        ->seatLocking();
                 })
                 ->exists();
 
@@ -115,7 +115,7 @@ class BookingService
 
     public function cancelBooking(User $user, Booking $booking): Booking
     {
-        if ($booking->user_id !== $user->id && $user->role !== 'admin') {
+        if ($booking->user_id !== $user->id && ! $user->isBackoffice()) {
             throw ValidationException::withMessages([
                 'booking' => ['Booking tidak dapat diakses.'],
             ]);

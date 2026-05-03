@@ -17,26 +17,28 @@
                 <div><p class="text-sm text-slate-500">Expired At</p><p class="font-semibold text-slate-800">{{ $booking->expired_at?->format('d M Y H:i') ?: '-' }}</p></div>
             </div>
 
-            <div class="mt-4 flex flex-wrap items-center gap-2">
-                <form method="POST" action="{{ route('admin.bookings.status', $booking) }}" class="flex items-center gap-2">
-                    @csrf
-                    @method('PATCH')
-                    <select name="status" class="admin-field">
-                        <option value="pending" @selected($booking->status === 'pending')>Pending</option>
-                        <option value="confirmed" @selected($booking->status === 'confirmed')>Confirmed</option>
-                        <option value="cancelled" @selected($booking->status === 'cancelled')>Cancelled</option>
-                        <option value="completed" @selected($booking->status === 'completed')>Completed</option>
-                    </select>
-                    <button class="admin-btn-primary" type="submit">Update Status</button>
-                </form>
-
-                @if ($booking->status !== 'cancelled')
-                    <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}" onsubmit="return confirm('Batalkan booking ini?')">
+            @if (auth()->user()->isAdmin() || auth()->user()->isStaff())
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <form method="POST" action="{{ route('admin.bookings.status', $booking) }}" class="flex items-center gap-2">
                         @csrf
-                        <button class="admin-btn-secondary" type="submit">Cancel Booking</button>
+                        @method('PATCH')
+                        <select name="status" class="admin-field">
+                            <option value="pending" @selected($booking->status === 'pending')>Pending</option>
+                            <option value="confirmed" @selected($booking->status === 'confirmed')>Confirmed</option>
+                            <option value="cancelled" @selected($booking->status === 'cancelled')>Cancelled</option>
+                            <option value="completed" @selected($booking->status === 'completed')>Completed</option>
+                        </select>
+                        <button class="admin-btn-primary" type="submit">Update Status</button>
                     </form>
-                @endif
-            </div>
+
+                    @if ($booking->status !== 'cancelled')
+                        <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}" onsubmit="return confirm('Batalkan booking ini?')">
+                            @csrf
+                            <button class="admin-btn-secondary" type="submit">Cancel Booking</button>
+                        </form>
+                    @endif
+                </div>
+            @endif
         </article>
 
         <article class="admin-card">

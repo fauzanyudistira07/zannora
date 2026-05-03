@@ -22,10 +22,12 @@
             </div>
 
             <div class="mt-4 flex flex-wrap items-center gap-2">
-                <form method="POST" action="{{ route('admin.tickets.regenerate', $ticket) }}">
-                    @csrf
-                    <button class="admin-btn-primary" type="submit">Regenerate Ticket</button>
-                </form>
+                @if (auth()->user()->isAdmin() || auth()->user()->isStaff())
+                    <form method="POST" action="{{ route('admin.tickets.regenerate', $ticket) }}">
+                        @csrf
+                        <button class="admin-btn-primary" type="submit">Regenerate Ticket</button>
+                    </form>
+                @endif
 
                 @if ($ticket->pdf_path)
                     @php($pdfUrl = str_starts_with($ticket->pdf_path, 'http') ? $ticket->pdf_path : asset('storage/'.$ticket->pdf_path))

@@ -8,7 +8,6 @@
         <div>
             <div class="mb-4 flex items-center justify-between">
                 <h1 class="font-heading text-4xl font-bold text-white">Passenger Management</h1>
-                <span id="passenger-api-status" class="rounded-full bg-white/15 px-4 py-2 text-sm text-white/90">API: checking...</span>
             </div>
 
             <div class="space-y-4">
@@ -134,17 +133,4 @@
         </aside>
     </section>
 
-    <script>
-        (async () => {
-            const statusEl = document.getElementById('passenger-api-status');
-            if (!statusEl) return;
-
-            try {
-                const response = await zannoraApiFetch('/api/v1/passengers');
-                statusEl.textContent = `API: connected (${response?.data?.length ?? 0} passengers)`;
-            } catch (error) {
-                statusEl.textContent = 'API: unavailable';
-            }
-        })();
-    </script>
 @endsection

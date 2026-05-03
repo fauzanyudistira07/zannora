@@ -4,6 +4,7 @@ namespace App\Http\Requests\Payment;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StorePaymentRequest extends FormRequest
 {
@@ -24,7 +25,7 @@ class StorePaymentRequest extends FormRequest
     {
         return [
             'booking_id' => ['required', 'exists:bookings,id'],
-            'payment_method' => ['required', 'string', 'max:50'],
+            'payment_method' => ['required', 'string', 'max:50', Rule::in(['midtrans_snap', 'bank_transfer', 'e_wallet'])],
             'proof_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
         ];
     }

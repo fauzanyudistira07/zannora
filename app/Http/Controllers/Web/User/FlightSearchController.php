@@ -123,7 +123,7 @@ class FlightSearchController extends Controller
         $bookedSeatIds = BookingDetail::query()
             ->whereHas('booking', function (Builder $query) use ($flight) {
                 $query->where('flight_id', $flight->id)
-                    ->whereIn('status', ['pending', 'confirmed', 'completed']);
+                    ->seatLocking();
             })
             ->pluck('seat_id');
 
@@ -148,7 +148,30 @@ class FlightSearchController extends Controller
             ->selectRaw('bookings.flight_id, count(*) as booked_count')
             ->join('bookings', 'bookings.id', '=', 'booking_details.booking_id')
             ->whereIn('bookings.flight_id', $flightIds)
-            ->whereIn('bookings.status', ['pending', 'confirmed', 'completed'])
+            ->where(function (Builder $query) {
+                $query
+                    ->whereIn('bookings.status', ['confirmed', 'completed'])
+                    ->orWhere(function (Builder $pendingQuery) {
+                        $pendingQuery
+                            ->where('bookings.status', 'pending')
+                            ->where(function (Builder $paymentQuery) {
+                                $paymentQuery
+                                    ->whereNotExists(function ($subQuery) {
+                                        $subQuery
+                                            ->selectRaw('1')
+                                            ->from('payments')
+                                            ->whereColumn('payments.booking_id', 'bookings.id');
+                                    })
+                                    ->orWhereExists(function ($subQuery) {
+                                        $subQuery
+                                            ->selectRaw('1')
+                                            ->from('payments')
+                                            ->whereColumn('payments.booking_id', 'bookings.id')
+                                            ->where('payments.payment_status', 'pending');
+                                    });
+                            });
+                    });
+            })
             ->groupBy('bookings.flight_id')
             ->pluck('booked_count', 'bookings.flight_id');
 

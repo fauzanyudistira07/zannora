@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Passenger;
 use App\Models\User;
+use App\Support\UserRole;
 use Illuminate\Http\Request;
 
 class AdminPassengerController extends Controller
@@ -23,7 +24,7 @@ class AdminPassengerController extends Controller
             ->withQueryString();
 
         $users = User::query()
-            ->where('role', 'user')
+            ->whereIn('role', UserRole::customerValues())
             ->orderBy('name')
             ->get(['id', 'name']);
 

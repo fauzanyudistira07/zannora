@@ -9,6 +9,7 @@ use App\Models\BookingDetail;
 use App\Models\Flight;
 use App\Services\BookingService;
 use App\Services\FlightService;
+use App\Services\PaymentService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,8 @@ class BookingWebController extends Controller
 {
     public function __construct(
         protected BookingService $bookingService,
-        protected FlightService $flightService
+        protected FlightService $flightService,
+        protected PaymentService $paymentService
     ) {
     }
 
@@ -34,6 +36,10 @@ class BookingWebController extends Controller
             ])
             ->latest()
             ->paginate(10);
+
+        $bookings->setCollection(
+            $bookings->getCollection()->map(fn (Booking $booking) => $this->syncPendingMidtransPayment($booking))
+        );
 
         return view('user.bookings.index', [
             'bookings' => $bookings,
@@ -57,7 +63,7 @@ class BookingWebController extends Controller
         $bookedSeatIds = BookingDetail::query()
             ->whereHas('booking', function ($query) use ($flight) {
                 $query->where('flight_id', $flight->id)
-                    ->whereIn('status', ['pending', 'confirmed', 'completed']);
+                    ->seatLocking();
             })
             ->pluck('seat_id');
 
@@ -97,6 +103,8 @@ class BookingWebController extends Controller
             'payments',
         ]);
 
+        $booking = $this->syncPendingMidtransPayment($booking);
+
         return view('user.bookings.show', [
             'booking' => $booking,
             'latestPayment' => $booking->payments->sortByDesc('created_at')->first(),
@@ -110,5 +118,33 @@ class BookingWebController extends Controller
         return redirect()
             ->route('my-bookings.show', $booking)
             ->with('status', 'Booking berhasil dibatalkan.');
+    }
+
+    protected function syncPendingMidtransPayment(Booking $booking): Booking
+    {
+        $latestPayment = $booking->payments->sortByDesc('created_at')->first();
+
+        if (! $latestPayment || $latestPayment->payment_method !== 'midtrans_snap' || $latestPayment->payment_status !== 'pending') {
+            return $booking;
+        }
+
+        try {
+            $this->paymentService->syncFromMidtransGateway($latestPayment, 3, 500);
+        } catch (\Throwable) {
+            // Keep current booking state if Midtrans status check fails.
+        }
+
+        $booking->refresh();
+        $booking->load([
+            'flight.airline',
+            'flight.departureAirport',
+            'flight.arrivalAirport',
+            'details.passenger',
+            'details.seat',
+            'details.ticket',
+            'payments',
+        ]);
+
+        return $booking;
     }
 }

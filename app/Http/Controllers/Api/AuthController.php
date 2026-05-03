@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use App\Support\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -25,10 +26,14 @@ class AuthController extends Controller
             'email' => $request->string('email')->toString(),
             'phone' => $request->input('phone'),
             'password' => Hash::make($request->string('password')->toString()),
-            'role' => 'user',
+            'role' => UserRole::CUSTOMER,
         ]);
 
         $token = $user->createToken('api-token')->plainTextToken;
+
+        $user->forceFill([
+            'last_login_at' => now(),
+        ])->save();
 
         return $this->successResponse([
             'user' => [

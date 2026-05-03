@@ -14,12 +14,16 @@ use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\FlightController;
+use App\Http\Controllers\Api\MidtransWebhookController;
 use App\Http\Controllers\Api\PassengerController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->name('api.')->group(function () {
+    Route::post('/payments/midtrans/notification', MidtransWebhookController::class)
+        ->name('payments.midtrans.notification');
+
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
@@ -45,73 +49,85 @@ Route::prefix('v1')->name('api.')->group(function () {
         Route::post('/payments', [PaymentController::class, 'store']);
         Route::get('/payments/{payment}', [PaymentController::class, 'show']);
 
-        Route::middleware('role:admin')->prefix('admin')->group(function () {
+        Route::middleware('role:admin,staff,manager')->prefix('admin')->group(function () {
             Route::get('/dashboard/summary', [AdminDashboardController::class, 'summary']);
             Route::get('/dashboard/recent-bookings', [AdminDashboardController::class, 'recentBookings']);
             Route::get('/dashboard/recent-payments', [AdminDashboardController::class, 'recentPayments']);
 
-            Route::get('/users', [AdminUserController::class, 'index']);
-            Route::get('/users/{user}', [AdminUserController::class, 'show']);
-            Route::get('/users/{user}/bookings', [AdminUserController::class, 'bookings']);
-            Route::get('/users/{user}/passengers', [AdminUserController::class, 'passengers']);
+            Route::middleware('role:admin,manager')->group(function () {
+                Route::get('/users', [AdminUserController::class, 'index']);
+                Route::get('/users/{user}', [AdminUserController::class, 'show']);
+                Route::get('/users/{user}/bookings', [AdminUserController::class, 'bookings']);
+                Route::get('/users/{user}/passengers', [AdminUserController::class, 'passengers']);
+
+                Route::get('/reports/bookings', [AdminReportController::class, 'bookings']);
+                Route::get('/reports/payments', [AdminReportController::class, 'payments']);
+                Route::get('/reports/revenue', [AdminReportController::class, 'revenue']);
+                Route::get('/reports/popular-routes', [AdminReportController::class, 'popularRoutes']);
+            });
 
             Route::get('/passengers', [AdminPassengerController::class, 'index']);
             Route::get('/passengers/{passenger}', [AdminPassengerController::class, 'show']);
 
             Route::get('/airports', [AirportController::class, 'index']);
-            Route::post('/airports', [AirportController::class, 'store']);
             Route::get('/airports/{airport}', [AirportController::class, 'show']);
-            Route::put('/airports/{airport}', [AirportController::class, 'update']);
-            Route::delete('/airports/{airport}', [AirportController::class, 'destroy']);
 
             Route::get('/airlines', [AirlineController::class, 'index']);
-            Route::post('/airlines', [AirlineController::class, 'store']);
             Route::get('/airlines/{airline}', [AirlineController::class, 'show']);
-            Route::put('/airlines/{airline}', [AirlineController::class, 'update']);
-            Route::delete('/airlines/{airline}', [AirlineController::class, 'destroy']);
 
             Route::get('/airplanes', [AirplaneController::class, 'index']);
-            Route::post('/airplanes', [AirplaneController::class, 'store']);
             Route::get('/airplanes/{airplane}', [AirplaneController::class, 'show']);
-            Route::put('/airplanes/{airplane}', [AirplaneController::class, 'update']);
-            Route::delete('/airplanes/{airplane}', [AirplaneController::class, 'destroy']);
-            Route::post('/airplanes/{airplane}/generate-seats', [AirplaneController::class, 'generateSeats']);
 
             Route::get('/seats', [AdminSeatController::class, 'index']);
-            Route::post('/seats', [AdminSeatController::class, 'store']);
             Route::get('/seats/{seat}', [AdminSeatController::class, 'show']);
-            Route::put('/seats/{seat}', [AdminSeatController::class, 'update']);
-            Route::delete('/seats/{seat}', [AdminSeatController::class, 'destroy']);
 
             Route::get('/flights', [FlightController::class, 'index']);
-            Route::post('/flights', [FlightController::class, 'store']);
             Route::get('/flights/{flight}', [FlightController::class, 'show']);
-            Route::put('/flights/{flight}', [FlightController::class, 'update']);
-            Route::delete('/flights/{flight}', [FlightController::class, 'destroy']);
-            Route::patch('/flights/{flight}/status', [FlightController::class, 'updateStatus']);
 
             Route::get('/bookings', [AdminBookingController::class, 'index']);
             Route::get('/bookings/{booking}', [AdminBookingController::class, 'show']);
-            Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus']);
-            Route::post('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel']);
 
             Route::get('/payments', [PaymentController::class, 'adminIndex']);
             Route::get('/payments/{payment}', [PaymentController::class, 'show']);
-            Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify']);
-            Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject']);
 
             Route::get('/tickets', [AdminTicketController::class, 'index']);
             Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show']);
-            Route::post('/tickets/{ticket}/regenerate', [AdminTicketController::class, 'regenerate']);
-
-            Route::get('/reports/bookings', [AdminReportController::class, 'bookings']);
-            Route::get('/reports/payments', [AdminReportController::class, 'payments']);
-            Route::get('/reports/revenue', [AdminReportController::class, 'revenue']);
-            Route::get('/reports/popular-routes', [AdminReportController::class, 'popularRoutes']);
 
             Route::get('/profile', [AdminProfileController::class, 'show']);
             Route::put('/profile', [AdminProfileController::class, 'update']);
             Route::put('/profile/password', [AdminProfileController::class, 'updatePassword']);
+
+            Route::middleware('role:admin,staff')->group(function () {
+                Route::patch('/flights/{flight}/status', [FlightController::class, 'updateStatus']);
+                Route::patch('/bookings/{booking}/status', [AdminBookingController::class, 'updateStatus']);
+                Route::post('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel']);
+                Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify']);
+                Route::post('/payments/{payment}/reject', [PaymentController::class, 'reject']);
+                Route::post('/tickets/{ticket}/regenerate', [AdminTicketController::class, 'regenerate']);
+            });
+
+            Route::middleware('role:admin')->group(function () {
+                Route::post('/airports', [AirportController::class, 'store']);
+                Route::put('/airports/{airport}', [AirportController::class, 'update']);
+                Route::delete('/airports/{airport}', [AirportController::class, 'destroy']);
+
+                Route::post('/airlines', [AirlineController::class, 'store']);
+                Route::put('/airlines/{airline}', [AirlineController::class, 'update']);
+                Route::delete('/airlines/{airline}', [AirlineController::class, 'destroy']);
+
+                Route::post('/airplanes', [AirplaneController::class, 'store']);
+                Route::put('/airplanes/{airplane}', [AirplaneController::class, 'update']);
+                Route::delete('/airplanes/{airplane}', [AirplaneController::class, 'destroy']);
+                Route::post('/airplanes/{airplane}/generate-seats', [AirplaneController::class, 'generateSeats']);
+
+                Route::post('/seats', [AdminSeatController::class, 'store']);
+                Route::put('/seats/{seat}', [AdminSeatController::class, 'update']);
+                Route::delete('/seats/{seat}', [AdminSeatController::class, 'destroy']);
+
+                Route::post('/flights', [FlightController::class, 'store']);
+                Route::put('/flights/{flight}', [FlightController::class, 'update']);
+                Route::delete('/flights/{flight}', [FlightController::class, 'destroy']);
+            });
         });
     });
 });

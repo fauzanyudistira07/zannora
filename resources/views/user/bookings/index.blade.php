@@ -7,14 +7,12 @@
     <section>
         <div class="mb-5 flex items-center justify-between">
             <h1 class="font-heading text-4xl font-bold text-white">My Bookings</h1>
-            <div class="flex items-center gap-2">
-                <span id="booking-api-status" class="rounded-full bg-white/15 px-4 py-2 text-sm text-white/90">API: checking...</span>
-                <a href="{{ route('flights.index') }}" class="portal-btn-blue">Search New Flight</a>
-            </div>
+            <a href="{{ route('flights.index') }}" class="portal-btn-blue">Search New Flight</a>
         </div>
 
         <div class="space-y-4">
             @forelse ($bookings as $booking)
+                @php($latestPayment = $booking->payments->sortByDesc('created_at')->first())
                 <article class="portal-card">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
@@ -43,7 +41,11 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <a href="{{ route('my-bookings.show', $booking) }}" class="portal-btn-blue px-4 py-2">Detail</a>
                             @if ($booking->status === 'pending')
-                                <a href="{{ route('payments.create', ['booking' => $booking->id]) }}" class="portal-btn-gold px-4 py-2">Pay Now</a>
+                                @if ($latestPayment && $latestPayment->payment_status === 'pending' && filled($latestPayment->midtrans_redirect_url))
+                                    <a href="{{ route('payments.show', $latestPayment) }}" class="portal-btn-gold px-4 py-2">Lanjut Bayar</a>
+                                @elseif (! $latestPayment || in_array($latestPayment->payment_status, ['failed', 'refunded'], true))
+                                    <a href="{{ route('payments.create', ['booking' => $booking->id]) }}" class="portal-btn-gold px-4 py-2">Pay Now</a>
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -62,17 +64,4 @@
         @endif
     </section>
 
-    <script>
-        (async () => {
-            const statusEl = document.getElementById('booking-api-status');
-            if (!statusEl) return;
-
-            try {
-                const response = await zannoraApiFetch('/api/v1/my-bookings');
-                statusEl.textContent = `API: connected (${response?.data?.length ?? 0} bookings)`;
-            } catch (error) {
-                statusEl.textContent = 'API: unavailable';
-            }
-        })();
-    </script>
 @endsection

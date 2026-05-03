@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Passenger;
 use App\Models\User;
+use App\Support\UserRole;
 use Illuminate\Http\Request;
 
 class AdminUserController extends Controller
@@ -16,7 +17,7 @@ class AdminUserController extends Controller
 
         $users = User::query()
             ->withCount(['passengers', 'bookings'])
-            ->where('role', 'user')
+            ->whereIn('role', UserRole::customerValues())
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($qq) use ($search) {
                     $qq->where('name', 'like', "%{$search}%")

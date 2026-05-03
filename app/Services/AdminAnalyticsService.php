@@ -11,6 +11,7 @@ use App\Models\Passenger;
 use App\Models\Payment;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Support\UserRole;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -21,7 +22,7 @@ class AdminAnalyticsService
         $now = now();
 
         return [
-            'total_users' => User::query()->where('role', 'user')->count(),
+            'total_users' => User::query()->whereIn('role', UserRole::customerValues())->count(),
             'total_passengers' => Passenger::query()->count(),
             'total_airports' => Airport::query()->count(),
             'total_airlines' => Airline::query()->count(),

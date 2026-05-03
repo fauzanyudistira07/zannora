@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\UserRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +40,11 @@ class AuthenticatedSessionController extends Controller
         $plainToken = $request->user()->createToken('web-portal')->plainTextToken;
         $request->session()->put('api_token', $plainToken);
 
-        $defaultRoute = $request->user()->role === 'admin'
+        $request->user()->forceFill([
+            'last_login_at' => now(),
+        ])->save();
+
+        $defaultRoute = in_array(UserRole::normalize($request->user()->role), UserRole::backofficeValues(), true)
             ? route('admin.dashboard', absolute: false)
             : route('home', absolute: false);
 

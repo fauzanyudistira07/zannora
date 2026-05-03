@@ -34,7 +34,7 @@
                 </div>
             </div>
 
-            @if ($payment->payment_status === 'pending')
+            @if ($payment->payment_status === 'pending' && (auth()->user()->isAdmin() || auth()->user()->isStaff()))
                 <div class="mt-4 flex flex-wrap items-center gap-2">
                     <form method="POST" action="{{ route('admin.payments.verify', $payment) }}" class="flex flex-wrap items-center gap-2">
                         @csrf
